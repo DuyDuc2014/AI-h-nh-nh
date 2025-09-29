@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UploadedImage, GenerationOptions } from './types';
 import { 
     STYLE_OPTIONS, 
@@ -7,7 +7,7 @@ import {
     LIGHTING_OPTIONS 
 } from './constants';
 import { generateImage, generatePreview, getAiSuggestions, getRandomTheme } from './services/geminiService';
-import { useHistoryState } from './useHistoryState';
+import { useHistoryState, useDebounce } from './useHistoryState';
 
 import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
@@ -41,6 +41,37 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isSurprising, setIsSurprising] = useState<boolean>(false);
+  
+  const debouncedOptions = useDebounce(options, 750);
+
+  // Effect for automatic live preview
+  useEffect(() => {
+    const isReadyForPreview = uploadedImage && (debouncedOptions.style.trim() || debouncedOptions.context.trim());
+
+    if (isReadyForPreview) {
+      const runPreview = async () => {
+        if (!uploadedImage) return;
+
+        setIsPreviewLoading(true);
+        setError(null);
+
+        try {
+          const result = await generatePreview(uploadedImage, {
+            style: debouncedOptions.style,
+            context: debouncedOptions.context,
+          });
+          setGeneratedImage(result);
+        } catch (err: any) {
+          setError(err.message || 'Lỗi khi tạo xem trước.');
+        } finally {
+          setIsPreviewLoading(false);
+        }
+      };
+
+      runPreview();
+    }
+  }, [debouncedOptions, uploadedImage]);
+
 
   const handleGenerate = async () => {
     if (!uploadedImage) {
@@ -59,34 +90,6 @@ function App() {
       setError(err.message || 'Đã xảy ra lỗi không mong muốn.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handlePreview = async () => {
-    if (!uploadedImage) {
-      setError('Vui lòng tải lên một hình ảnh.');
-      return;
-    }
-    if (!options.style && !options.context) {
-      setError('Vui lòng chọn Phong cách hoặc Bối cảnh để xem trước.');
-      return;
-    }
-
-
-    setIsPreviewLoading(true);
-    setError(null);
-    setGeneratedImage(null);
-
-    try {
-      const result = await generatePreview(uploadedImage, {
-        style: options.style,
-        context: options.context,
-      });
-      setGeneratedImage(result);
-    } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi không mong muốn khi tạo xem trước.');
-    } finally {
-      setIsPreviewLoading(false);
     }
   };
 
@@ -128,7 +131,6 @@ function App() {
   };
   
   const isReadyToGenerate = !!uploadedImage;
-  const isReadyForPreview = !!uploadedImage && (!!options.style.trim() || !!options.context.trim());
 
   return (
     <div className="min-h-screen bg-slate-900 text-gray-200 font-sans">
@@ -181,12 +183,10 @@ function App() {
             />
             <GenerationPanel 
               onGenerate={handleGenerate}
-              onPreview={handlePreview}
               isLoading={isLoading}
               isPreviewLoading={isPreviewLoading}
               generatedImage={generatedImage}
               isReady={isReadyToGenerate}
-              isReadyForPreview={isReadyForPreview}
             />
           </div>
         </div>
