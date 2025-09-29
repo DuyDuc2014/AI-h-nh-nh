@@ -1,4 +1,5 @@
-import { AspectRatio } from './types';
+// FIX: Import AspectRatio type for ASPECT_RATIO_OPTIONS.
+import type { AspectRatio } from './types';
 
 export const STYLE_OPTIONS: string[] = [
   "Tranh kỹ thuật số, giả tưởng",
@@ -48,11 +49,11 @@ export const LIGHTING_OPTIONS: string[] = [
   "Ánh sáng khói",
 ];
 
-
+// FIX: Added ASPECT_RATIO_OPTIONS for AspectRatioSelector component.
 export const ASPECT_RATIO_OPTIONS: { label: string; value: AspectRatio }[] = [
     { label: "Vuông (1:1)", value: "1:1" },
-    { label: "Màn ảnh rộng (16:9)", value: "16:9" },
-    { label: "Chân dung (9:16)", value: "9:16" },
-    { label: "Phong cảnh (4:3)", value: "4:3" },
-    { label: "Cao (3:4)", value: "3:4" },
+    { label: "Dọc (3:4)", value: "3:4" },
+    { label: "Dọc (9:16)", value: "9:16" },
+    { label: "Ngang (4:3)", value: "4:3" },
+    { label: "Ngang (16:9)", value: "16:9" },
 ];

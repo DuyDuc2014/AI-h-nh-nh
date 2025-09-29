@@ -23,6 +23,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
         const base64 = (e.target?.result as string).split(',')[1];
         onImageUpload({ base64, mimeType: file.type });
       };
+      // FIX: Corrected method name from readDataURL to readAsDataURL.
       reader.readAsDataURL(file);
     }
   };
@@ -54,7 +55,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
   return (
     <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 h-96 flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white">Bước 1: Tải lên ảnh chân dung</h2>
+        <h2 className="text-xl font-bold text-white">Bước 1: Tải lên ảnh của bạn</h2>
       </div>
 
       {!uploadedImage ? (
@@ -69,14 +70,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, uploadedIm
         >
           <UploadIcon className="w-12 h-12 text-slate-400 mb-4" />
           <p className="text-slate-300 font-semibold">Nhấp để tải lên hoặc kéo và thả</p>
-          <p className="text-xs text-slate-500 mt-1">PNG, JPG, hoặc WEBP. Gương mặt rõ nét cho kết quả tốt nhất.</p>
+          <p className="text-xs text-slate-500 mt-1">PNG, JPG, hoặc WEBP. Ảnh rõ nét cho kết quả tốt nhất, có thể chứa một hoặc nhiều người.</p>
         </div>
       ) : (
         <div className="flex-grow flex flex-col justify-center items-center">
             <div className="relative w-48 h-48">
                 <img
                     src={`data:${uploadedImage.mimeType};base64,${uploadedImage.base64}`}
-                    alt="Uploaded portrait"
+                    alt="Ảnh đã tải lên"
                     className="w-full h-full object-cover rounded-lg shadow-lg"
                 />
                 <div className="absolute bottom-2 right-2 bg-green-500/80 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">

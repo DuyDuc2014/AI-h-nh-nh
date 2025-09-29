@@ -62,7 +62,7 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
       </div>
 
       <div>
-        <h2 className="text-xl font-bold text-white mb-4">Tác phẩm của bạn đã sẵn sàng!</h2>
+        <h2 className="text-xl font-bold text-white mb-4">Kết quả</h2>
         <div className="aspect-square bg-slate-900/50 rounded-lg flex items-center justify-center border border-slate-700">
           {generatedImage ? (
             <img src={generatedImage} alt="Generated masterpiece" className="w-full h-full object-contain rounded-lg" />

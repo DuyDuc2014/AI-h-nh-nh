@@ -6,22 +6,21 @@ import {
     CAMERA_ANGLE_OPTIONS, 
     LIGHTING_OPTIONS 
 } from './constants';
-import { generateImage, generatePreview } from './services/geminiService';
+import { generateImage, generatePreview, getAiSuggestions, getRandomTheme } from './services/geminiService';
 import { useHistoryState } from './useHistoryState';
 
 import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
 import OptionSelector from './components/OptionSelector';
-import AspectRatioSelector from './components/AspectRatioSelector';
 import GenerationPanel from './components/GenerationPanel';
 import ErrorMessage from './components/ErrorMessage';
+import AiAssistant from './components/AiAssistant';
 
 const initialOptions: GenerationOptions = {
   style: '',
   context: '',
   cameraAngle: '',
   lighting: '',
-  aspectRatio: '1:1',
 };
 
 function App() {
@@ -40,10 +39,12 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
+  const [isSurprising, setIsSurprising] = useState<boolean>(false);
 
   const handleGenerate = async () => {
     if (!uploadedImage) {
-      setError('Vui lòng tải lên một hình ảnh chân dung.');
+      setError('Vui lòng tải lên một hình ảnh.');
       return;
     }
 
@@ -51,17 +52,8 @@ function App() {
     setError(null);
     setGeneratedImage(null);
 
-    const generationOptions: Omit<GenerationOptions, 'aspectRatio'> = {
-      style: options.style,
-      context: options.context,
-      cameraAngle: options.cameraAngle,
-      lighting: options.lighting,
-    };
-
     try {
-      // NOTE: The `generateImage` service doesn't support aspect ratio yet.
-      // This functionality would need to be added to the Gemini call if the model supports it.
-      const result = await generateImage(uploadedImage, generationOptions);
+      const result = await generateImage(uploadedImage, options);
       setGeneratedImage(result);
     } catch (err: any) {
       setError(err.message || 'Đã xảy ra lỗi không mong muốn.');
@@ -72,7 +64,7 @@ function App() {
 
   const handlePreview = async () => {
     if (!uploadedImage) {
-      setError('Vui lòng tải lên một hình ảnh chân dung.');
+      setError('Vui lòng tải lên một hình ảnh.');
       return;
     }
     if (!options.style && !options.context) {
@@ -97,6 +89,43 @@ function App() {
       setIsPreviewLoading(false);
     }
   };
+
+  const handleAiSuggest = async () => {
+    if (!uploadedImage) {
+      setError('Vui lòng tải lên một hình ảnh để nhận gợi ý.');
+      return;
+    }
+
+    setIsSuggesting(true);
+    setError(null);
+
+    try {
+      const suggestions = await getAiSuggestions(uploadedImage);
+      setOptions(prev => ({
+        ...prev,
+        style: suggestions.style,
+        context: suggestions.context,
+      }));
+    } catch (err: any) {
+      setError(err.message || 'Lỗi khi nhận gợi ý từ AI.');
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
+  const handleRandomTheme = async () => {
+    setIsSurprising(true);
+    setError(null);
+
+    try {
+      const theme = await getRandomTheme();
+      setOptions(theme); // This replaces all options
+    } catch (err: any) {
+      setError(err.message || 'Lỗi khi tạo chủ đề ngẫu nhiên.');
+    } finally {
+      setIsSurprising(false);
+    }
+  };
   
   const isReadyToGenerate = !!uploadedImage;
   const isReadyForPreview = !!uploadedImage && (!!options.style.trim() || !!options.context.trim());
@@ -111,7 +140,6 @@ function App() {
           {/* Left Column */}
           <div className="space-y-8">
             <OptionSelector
-              step={2}
               title="Thêm phong cách"
               options={STYLE_OPTIONS}
               selectedValue={options.style}
@@ -119,7 +147,6 @@ function App() {
               customPlaceholder="VD: Hoạt hình 3D, siêu thực..."
             />
             <OptionSelector
-              step={3}
               title="Xác định bối cảnh"
               options={CONTEXT_OPTIONS}
               selectedValue={options.context}
@@ -127,7 +154,6 @@ function App() {
               customPlaceholder="VD: Bên trong buồng lái tàu vũ trụ..."
             />
             <OptionSelector
-              step={4}
               title="Đặt góc máy"
               options={CAMERA_ANGLE_OPTIONS}
               selectedValue={options.cameraAngle}
@@ -135,22 +161,24 @@ function App() {
               customPlaceholder="VD: Chụp từ dưới lên..."
             />
             <OptionSelector
-              step={5}
               title="Chọn ánh sáng"
               options={LIGHTING_OPTIONS}
               selectedValue={options.lighting}
               onValueChange={value => setOptions(prev => ({ ...prev, lighting: value }))}
               customPlaceholder="VD: Ánh nến lung linh..."
             />
-            <AspectRatioSelector 
-              selectedValue={options.aspectRatio} 
-              onValueChange={value => setOptions(prev => ({ ...prev, aspectRatio: value }))} 
-            />
           </div>
 
           {/* Right Column */}
           <div className="space-y-8 lg:sticky lg:top-8 self-start">
             <ImageUploader onImageUpload={setUploadedImage} uploadedImage={uploadedImage} />
+            <AiAssistant 
+              onSuggest={handleAiSuggest}
+              onSurprise={handleRandomTheme}
+              isSuggesting={isSuggesting}
+              isSurprising={isSurprising}
+              isReady={!!uploadedImage}
+            />
             <GenerationPanel 
               onGenerate={handleGenerate}
               onPreview={handlePreview}

@@ -3,12 +3,12 @@ export interface UploadedImage {
   mimeType: string;
 }
 
-export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
-
 export interface GenerationOptions {
   style: string;
   context: string;
   cameraAngle: string;
   lighting: string;
-  aspectRatio: AspectRatio;
 }
+
+// FIX: Added AspectRatio type for AspectRatioSelector component.
+export type AspectRatio = "1:1" | "3:4" | "4:3" | "9:16" | "16:9";

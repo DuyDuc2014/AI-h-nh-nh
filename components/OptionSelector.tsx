@@ -2,7 +2,6 @@ import React from 'react';
 import { RefreshIcon } from './icons';
 
 interface OptionSelectorProps {
-  step: number;
   title: string;
   options: string[];
   selectedValue: string;
@@ -11,7 +10,6 @@ interface OptionSelectorProps {
 }
 
 const OptionSelector: React.FC<OptionSelectorProps> = ({
-  step,
   title,
   options,
   selectedValue,
@@ -26,7 +24,7 @@ const OptionSelector: React.FC<OptionSelectorProps> = ({
   return (
     <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
        <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white">Bước {step}: {title}</h2>
+        <h2 className="text-xl font-bold text-white">{title}</h2>
         <button 
           onClick={handleReset} 
           className="p-2 rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-700 hover:border-purple-500 hover:text-purple-300 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
