@@ -23,7 +23,8 @@ export const generateImage = async (
         const prompt = constructPrompt(options);
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image-preview',
+            // FIX: Updated model name to stable version per guidelines.
+            model: 'gemini-2.5-flash-image',
             contents: {
                 parts: [
                     {
@@ -93,7 +94,8 @@ export const generatePreview = async (
         const prompt = constructPreviewPrompt(options.style, options.context);
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image-preview',
+            // FIX: Updated model name to stable version per guidelines.
+            model: 'gemini-2.5-flash-image',
             contents: {
                 parts: [
                     {

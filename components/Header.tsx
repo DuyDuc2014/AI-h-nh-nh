@@ -33,13 +33,13 @@ const Header: React.FC<HeaderProps> = ({ onUndo, onRedo, canUndo, canRedo }) => 
         </div>
 
       <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-        AI Hoán Đổi Gương Mặt
+        AI tạo ảnh chuyên nghiệp
       </h1>
       <p className="mt-4 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
-        Tạo ra những hình ảnh mới tuyệt đẹp bằng cách kết hợp khuôn mặt của bạn với các ý tưởng sáng tạo.
+        Tạo ra những hình ảnh chuyên nghiệp và sáng tạo với sức mạnh của AI.
       </p>
       <div className="mt-4 inline-block bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium px-4 py-1 rounded-full">
-        APP được thiết kế bởi LÊ VŨ
+        APP được thiết kế trên ý tưởng thầy Lê Trần Vũ
       </div>
     </header>
   );

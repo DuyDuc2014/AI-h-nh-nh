@@ -7,7 +7,7 @@ import {
     LIGHTING_OPTIONS 
 } from './constants';
 import { generateImage, generatePreview, getAiSuggestions, getRandomTheme } from './services/geminiService';
-import { useHistoryState, useDebounce } from './useHistoryState';
+import { useHistoryState } from './useHistoryState';
 
 import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
@@ -35,18 +35,35 @@ function App() {
     canRedo 
   } = useHistoryState<GenerationOptions>(initialOptions);
   
+  const [draftOptions, setDraftOptions] = useState<GenerationOptions>(options);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isSurprising, setIsSurprising] = useState<boolean>(false);
-  
-  const debouncedOptions = useDebounce(options, 750);
 
-  // Effect for automatic live preview
+  // Sync draft with main state when it changes (undo, redo, AI suggest)
   useEffect(() => {
-    const isReadyForPreview = uploadedImage && (debouncedOptions.style.trim() || debouncedOptions.context.trim());
+    setDraftOptions(options);
+  }, [options]);
+
+  // Debounce input from draftOptions and commit to the main history state
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (JSON.stringify(draftOptions) !== JSON.stringify(options)) {
+        setOptions(draftOptions);
+      }
+    }, 750);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [draftOptions, options, setOptions]);
+
+  // Effect for automatic live preview, depends on committed 'options' state
+  useEffect(() => {
+    const isReadyForPreview = uploadedImage && (options.style.trim() || options.context.trim());
 
     if (isReadyForPreview) {
       const runPreview = async () => {
@@ -57,12 +74,13 @@ function App() {
 
         try {
           const result = await generatePreview(uploadedImage, {
-            style: debouncedOptions.style,
-            context: debouncedOptions.context,
+            style: options.style,
+            context: options.context,
           });
           setGeneratedImage(result);
-        } catch (err: any) {
-          setError(err.message || 'Lỗi khi tạo xem trước.');
+        // FIX: Refactored catch block for robust error handling.
+        } catch (err) {
+          setError((err as Error).message || 'Lỗi khi tạo xem trước.');
         } finally {
           setIsPreviewLoading(false);
         }
@@ -70,7 +88,7 @@ function App() {
 
       runPreview();
     }
-  }, [debouncedOptions, uploadedImage]);
+  }, [options, uploadedImage]);
 
 
   const handleGenerate = async () => {
@@ -86,8 +104,9 @@ function App() {
     try {
       const result = await generateImage(uploadedImage, options);
       setGeneratedImage(result);
-    } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi không mong muốn.');
+    // FIX: Refactored catch block for robust error handling.
+    } catch (err) {
+      setError((err as Error).message || 'Đã xảy ra lỗi không mong muốn.');
     } finally {
       setIsLoading(false);
     }
@@ -109,8 +128,9 @@ function App() {
         style: suggestions.style,
         context: suggestions.context,
       }));
-    } catch (err: any) {
-      setError(err.message || 'Lỗi khi nhận gợi ý từ AI.');
+    // FIX: Refactored catch block for robust error handling.
+    } catch (err) {
+      setError((err as Error).message || 'Lỗi khi nhận gợi ý từ AI.');
     } finally {
       setIsSuggesting(false);
     }
@@ -123,8 +143,9 @@ function App() {
     try {
       const theme = await getRandomTheme();
       setOptions(theme); // This replaces all options
-    } catch (err: any) {
-      setError(err.message || 'Lỗi khi tạo chủ đề ngẫu nhiên.');
+    // FIX: Refactored catch block for robust error handling.
+    } catch (err) {
+      setError((err as Error).message || 'Lỗi khi tạo chủ đề ngẫu nhiên.');
     } finally {
       setIsSurprising(false);
     }
@@ -144,29 +165,29 @@ function App() {
             <OptionSelector
               title="Thêm phong cách"
               options={STYLE_OPTIONS}
-              selectedValue={options.style}
-              onValueChange={value => setOptions(prev => ({ ...prev, style: value }))}
+              selectedValue={draftOptions.style}
+              onValueChange={value => setDraftOptions(prev => ({ ...prev, style: value }))}
               customPlaceholder="VD: Hoạt hình 3D, siêu thực..."
             />
             <OptionSelector
               title="Xác định bối cảnh"
               options={CONTEXT_OPTIONS}
-              selectedValue={options.context}
-              onValueChange={value => setOptions(prev => ({ ...prev, context: value }))}
+              selectedValue={draftOptions.context}
+              onValueChange={value => setDraftOptions(prev => ({ ...prev, context: value }))}
               customPlaceholder="VD: Bên trong buồng lái tàu vũ trụ..."
             />
             <OptionSelector
               title="Đặt góc máy"
               options={CAMERA_ANGLE_OPTIONS}
-              selectedValue={options.cameraAngle}
-              onValueChange={value => setOptions(prev => ({ ...prev, cameraAngle: value }))}
+              selectedValue={draftOptions.cameraAngle}
+              onValueChange={value => setDraftOptions(prev => ({ ...prev, cameraAngle: value }))}
               customPlaceholder="VD: Chụp từ dưới lên..."
             />
             <OptionSelector
               title="Chọn ánh sáng"
               options={LIGHTING_OPTIONS}
-              selectedValue={options.lighting}
-              onValueChange={value => setOptions(prev => ({ ...prev, lighting: value }))}
+              selectedValue={draftOptions.lighting}
+              onValueChange={value => setDraftOptions(prev => ({ ...prev, lighting: value }))}
               customPlaceholder="VD: Ánh nến lung linh..."
             />
           </div>
